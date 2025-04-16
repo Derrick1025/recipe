@@ -2,38 +2,45 @@
 session_start();
 include '../database.php';
 
-// Check if user is admin
-if ($_SESSION['role'] !== 'admin') {
-    header("Location: ../index.php?message=deleted");
+// Check login
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../login.php");
     exit;
 }
+
+$user_id = $_SESSION['user_id'];
+$user_role = $_SESSION['role'];
 
 if (isset($_GET['id'])) {
     $id = intval($_GET['id']);
 
-    // Get the image filename before deleting the recipe
-    $result = $conn->query("SELECT image FROM recipes WHERE id = $id");
+    // Check if the recipe belongs to the user or user is admin
+    $result = $conn->query("SELECT image, user_id FROM recipes WHERE id = $id");
     $row = $result->fetch_assoc();
-    $image = $row['image'];
 
-    // Delete the recipe from the database
+    if (!$row || ($user_role !== 'admin' && $row['user_id'] != $user_id)) {
+        $_SESSION['message'] = 'Unauthorized to delete this recipe.';
+        header("Location: ../index.php");
+        exit;
+    }
+
+    // Delete the recipe
+    $image = $row['image'];
     $sql = "DELETE FROM recipes WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
-        // Delete the image file from the uploads folder
         $imagePath = __DIR__ . "/uploads/" . $image;
         if (!empty($image) && file_exists($imagePath)) {
             unlink($imagePath);
         }
 
         $_SESSION['message'] = 'Recipe deleted successfully!';
-        header("Location: index.php?message=deleted");
-        exit;
     } else {
-        die("Error deleting recipe: " . $conn->error);
+        $_SESSION['message'] = 'Error deleting recipe.';
     }
-} else {
-    die("Invalid request.");
+    header("Location: ../index.php");
+    exit;
 }
+?>

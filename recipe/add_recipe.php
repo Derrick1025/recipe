@@ -20,6 +20,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $steps = $_POST['steps'];
     $category = $_POST['category'];
     $image = null;
+    // Ownership check: Only admin or the owner can update
+    $user_id = $_SESSION['user_id'];
+    $user_role = $_SESSION['role'];
+
+    if ($user_role !== 'admin') {
+        $check = $conn->query("SELECT user_id FROM recipes WHERE id = $id");
+        $owner = $check->fetch_assoc();
+        if (!$owner || $owner['user_id'] != $user_id) {
+            $_SESSION['message'] = 'Unauthorized to edit this recipe.';
+            header("Location: ../index.php");
+            exit;
+        }
+    }
 
     // Validate image upload: Check if an image file was uploaded
     if (empty($_FILES['image']['name'])) {

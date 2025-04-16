@@ -97,8 +97,8 @@ while ($row = $categoryResult->fetch_assoc()) {
                                     <i class="bi bi-eye"></i> View
                                 </button>
 
-                                <!-- Edit button (only for admin) -->
-                                <?php if ($_SESSION['role'] === 'admin') { ?>
+                                <?php if ($_SESSION['role'] === 'admin' || $row['user_id'] == $_SESSION['user_id']) { ?>
+                                    <!-- Edit Button -->
                                     <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
                                         data-id="<?php echo $row['id']; ?>"
                                         data-title="<?php echo $row['title']; ?>"
@@ -109,10 +109,9 @@ while ($row = $categoryResult->fetch_assoc()) {
                                         <i class="bi bi-pencil"></i> Edit
                                     </button>
 
-                                    <!-- Delete button (only for admin) -->
+                                    <!-- Delete Button -->
                                     <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                        data-id="<?php echo $row['id']; ?>" data-title="<?php echo $row['title']; ?>"
-                                        title="Delete Recipe">
+                                        data-id="<?php echo $row['id']; ?>" data-title="<?php echo $row['title']; ?>">
                                         <i class="bi bi-trash"></i> Delete
                                     </button>
                                 <?php } ?>
@@ -223,61 +222,63 @@ while ($row = $categoryResult->fetch_assoc()) {
         // Handle the 'View' button click event
         var viewModal = document.getElementById('viewModal');
         viewModal.addEventListener('show.bs.modal', function(event) {
-                    var button = event.relatedTarget;
-                    document.getElementById('viewTitle').textContent = button.getAttribute('data-title');
-                    document.getElementById('viewCategory').textContent = button.getAttribute('data-category');
-                    document.getElementById('viewIngredients').textContent = button.getAttribute('data-ingredients');
-                    document.getElementById('viewSteps').innerHTML = nl2br(button.getAttribute('data-steps'));
-                    document.getElementById('viewImage').src = "recipe/uploads/" + button.getAttribute('data-image');
+            var button = event.relatedTarget;
+            document.getElementById('viewTitle').textContent = button.getAttribute('data-title');
+            document.getElementById('viewCategory').textContent = button.getAttribute('data-category');
+            document.getElementById('viewIngredients').textContent = button.getAttribute('data-ingredients');
+            document.getElementById('viewSteps').innerHTML = nl2br(button.getAttribute('data-steps'));
+            document.getElementById('viewImage').src = "recipe/uploads/" + button.getAttribute('data-image');
 
-                    // Image display logic
-                    var imageName = button.getAttribute('data-image');
-                    var imageElement = document.getElementById('viewImage');
+            // Image display logic
+            var imageName = button.getAttribute('data-image');
+            var imageElement = document.getElementById('viewImage');
 
-                    if (imageName && imageName.trim() !== '') {
-                        imageElement.src = "recipe/uploads/" + imageName;
-                        imageElement.style.display = "block";
-                        imageElement.alt = "Recipe Image";
-                    } else {
-                        imageElement.src = "";
-                        imageElement.style.display = "none";
-                    }
-                    });
+            if (imageName && imageName.trim() !== '') {
+                imageElement.src = "recipe/uploads/" + imageName;
+                imageElement.style.display = "block";
+                imageElement.alt = "Recipe Image";
+            } else {
+                imageElement.src = "";
+                imageElement.style.display = "none";
+            }
+        });
 
-                // Handle the 'Edit' button click event
-                var editModal = document.getElementById('editModal'); editModal.addEventListener('show.bs.modal', function(event) {
-                    var button = event.relatedTarget;
-                    document.getElementById('editRecipeId').value = button.getAttribute('data-id');
-                    document.getElementById('editTitle').value = button.getAttribute('data-title');
-                    document.getElementById('editCategory').value = button.getAttribute('data-category');
-                    document.getElementById('editIngredients').value = button.getAttribute('data-ingredients');
-                    document.getElementById('editSteps').value = button.getAttribute('data-steps');
-                });
+        // Handle the 'Edit' button click event
+        var editModal = document.getElementById('editModal');
+        editModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            document.getElementById('editRecipeId').value = button.getAttribute('data-id');
+            document.getElementById('editTitle').value = button.getAttribute('data-title');
+            document.getElementById('editCategory').value = button.getAttribute('data-category');
+            document.getElementById('editIngredients').value = button.getAttribute('data-ingredients');
+            document.getElementById('editSteps').value = button.getAttribute('data-steps');
+        });
 
-                // Handle the 'Delete' button click event
-                var deleteModal = document.getElementById('deleteModal'); deleteModal.addEventListener('show.bs.modal', function(event) {
-                    var button = event.relatedTarget;
-                    document.getElementById('recipeTitle').textContent = button.getAttribute('data-title');
-                    document.getElementById('confirmDelete').href = "recipe/delete_recipe.php?id=" + button.getAttribute('data-id');
-                });
+        // Handle the 'Delete' button click event
+        var deleteModal = document.getElementById('deleteModal');
+        deleteModal.addEventListener('show.bs.modal', function(event) {
+            var button = event.relatedTarget;
+            document.getElementById('recipeTitle').textContent = button.getAttribute('data-title');
+            document.getElementById('confirmDelete').href = "recipe/delete_recipe.php?id=" + button.getAttribute('data-id');
+        });
 
-                // Helper function to convert newline characters to <br> tags
-                function nl2br(str) {
-                    return str.replace(/\n/g, "<br>");
-                }
+        // Helper function to convert newline characters to <br> tags
+        function nl2br(str) {
+            return str.replace(/\n/g, "<br>");
+        }
 
-                // Automatically hide the success message after 5 seconds
+        // Automatically hide the success message after 5 seconds
+        setTimeout(function() {
+            var successMessage = document.querySelector('.alert-success');
+            if (successMessage) {
+                successMessage.classList.add('fade');
+                successMessage.classList.remove('show');
+                // After fading out, remove the element from the DOM to avoid blank space
                 setTimeout(function() {
-                    var successMessage = document.querySelector('.alert-success');
-                    if (successMessage) {
-                        successMessage.classList.add('fade');
-                        successMessage.classList.remove('show');
-                        // After fading out, remove the element from the DOM to avoid blank space
-                        setTimeout(function() {
-                            successMessage.remove();
-                        }, 500); // This time should match the duration of the fade-out transition
-                    }
-                }, 5000); // 5000ms = 5 seconds
+                    successMessage.remove();
+                }, 500); // This time should match the duration of the fade-out transition
+            }
+        }, 5000); // 5000ms = 5 seconds
     </script>
 </body>
 
