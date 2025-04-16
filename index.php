@@ -21,7 +21,13 @@ if (!empty($categoryFilter)) {
 if (!empty($searchTerm)) {
     $sql .= " AND title LIKE '%" . $conn->real_escape_string($searchTerm) . "%'";
 }
-$sql .= " ORDER BY " . ($sort === 'title' ? "title ASC" : "id DESC");
+if ($sort === 'title') {
+    $sql .= " ORDER BY title ASC";
+} elseif ($sort === 'title_desc') {
+    $sql .= " ORDER BY title DESC";
+} else {
+    $sql .= " ORDER BY id DESC"; // Assuming 'date' means newest (by ID)
+}
 
 $result = $conn->query($sql);
 if (!$result) {
@@ -47,7 +53,8 @@ while ($row = $categoryResult->fetch_assoc()) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body, html {
+        body,
+        html {
             height: 100%;
             background: linear-gradient(135deg, #c3ecf4, #a0c3ff);
             overflow-x: hidden;
@@ -56,42 +63,42 @@ while ($row = $categoryResult->fetch_assoc()) {
 </head>
 
 <body class="bg-light">
-<div class="container mt-4">
-    <h2 class="mb-4">Recipe List</h2>
+    <div class="container mt-4">
+        <h2 class="mb-4">Recipe List</h2>
 
-    <!-- Success Message -->
-    <?php if (isset($_SESSION['message'])): ?>
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle"></i> <?= $_SESSION['message']; ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <?php unset($_SESSION['message']); ?>
-    <?php endif; ?>
+        <!-- Success Message -->
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle"></i> <?= $_SESSION['message']; ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['message']); ?>
+        <?php endif; ?>
 
-    <!-- Filter & Search -->
-    <form method="GET" class="row g-2 mb-4">
-        <div class="col-md-3">
-            <select name="category" class="form-select">
-                <option value="">All Categories</option>
-                <?php foreach ($categories as $category): ?>
-                    <option value="<?= $category ?>" <?= ($category === $categoryFilter) ? 'selected' : '' ?>><?= $category ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <select name="sort" class="form-select">
-                <option value="title" <?= ($sort === 'title') ? 'selected' : '' ?>>Sort A-Z</option>
-                <option value="date" <?= ($sort === 'date') ? 'selected' : '' ?>>Newest First</option>
-            </select>
-        </div>
-        <div class="col-md-4">
-            <input type="text" name="search" value="<?= htmlspecialchars($searchTerm) ?>" class="form-control" placeholder="Search recipe title...">
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Apply</button>
-        </div>
-    </form>
-
+        <!-- Filter & Search -->
+        <form method="GET" class="row g-2 mb-4">
+            <div class="col-md-3">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?= $category ?>" <?= ($category === $categoryFilter) ? 'selected' : '' ?>><?= $category ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="sort" class="form-select">
+                    <option value="title" <?= ($sort === 'title') ? 'selected' : '' ?>>Sort A-Z</option>
+                    <option value="title_desc" <?= ($sort === 'title_desc') ? 'selected' : '' ?>>Sort Z-A</option>
+                    <option value="date" <?= ($sort === 'date') ? 'selected' : '' ?>>Newest First</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="search" value="<?= htmlspecialchars($searchTerm) ?>" class="form-control" placeholder="Search recipe title...">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Apply</button>
+            </div>
+        </form>
 
         <div class="row">
             <?php if ($result->num_rows > 0) { ?>
